@@ -1,0 +1,29 @@
+﻿@model VehicleDto
+
+@{
+    ViewBag.Title = "title";
+    Layout = "_Layout";
+}
+<h4>Advertise a vehicle for sale</h4>
+<form asp-action="Advertise" asp-controller="Vehicles" method="POST" id="advertise-vehicle-form">
+    @Html.HiddenFor(model => model.ModelCode)
+    @Html.HiddenFor(model => model.ModelName)
+    Make &amp; Model: @Html.DisplayFor(model => model.ModelName)
+    <hr />
+    <p>
+        @Html.LabelFor(model => model.Registration)
+        @Html.EditorFor(model => model.Registration)
+        @Html.ValidationMessageFor(model => model.Registration)
+    </p>
+    <p>
+        @Html.LabelFor(model => model.Year)
+        @Html.EditorFor(model => model.Year)
+        @Html.ValidationMessageFor(model => model.Year)
+    </p>
+    <p>
+        @Html.LabelFor(model => model.Color)
+        @Html.DropDownListFor(model => model.Color, VehicleDto.ListColors(Model.Color))
+        @Html.ValidationMessageFor(model => model.Color)
+    </p>
+    <input type="submit" value="Advertise!" />
+</form>
