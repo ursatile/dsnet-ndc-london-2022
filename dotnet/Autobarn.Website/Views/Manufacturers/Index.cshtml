@@ -1,0 +1,12 @@
+﻿@model System.Collections.Generic.IEnumerable<Autobarn.Data.Entities.Manufacturer>
+
+@{
+    ViewBag.Title = "Manufacturers";
+}
+
+<h2>Manufacturers</h2>
+<ul>
+    @foreach (var mfr in Model) {
+        <li><a href="@Url.Action("Models", "Manufacturers", new { id = mfr.Code })">@mfr.Name</a></li>
+    }
+</ul>
