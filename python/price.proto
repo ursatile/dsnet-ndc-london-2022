@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option csharp_namespace = "Autobarn.PricingServer";
+
+package price;
+
+service Pricer {
+  rpc GetPrice (PriceRequest) returns (PriceReply);
+}
+
+message PriceRequest {
+  string modelCode = 2;
+  string color = 3;
+  int32 year = 4;
+}
+
+message PriceReply {
+  int32 price = 1;
+  string currencyCode = 2;
+}

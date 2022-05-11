@@ -1,0 +1,15 @@
+﻿@model Autobarn.Data.Entities.Model
+
+<h1>@Model.Manufacturer.Name @Model.Name</h1>
+<hr />
+@if (Model.Vehicles.Any()) {
+    <ul>
+        @foreach (var vehicle in Model.Vehicles) {
+            <li><a href="@Url.Action("Details", "Vehicles", new { id = vehicle.Registration})">@vehicle.Registration</a></li>
+        }
+    </ul>
+} else {
+    <p><em>We don't have any @Model.Manufacturer.Name @Model.Name cars for sale right now.</em></p>
+}
+<hr />
+<a href="@Url.Action("Advertise", "Vehicles" , new { id = @Model.Code })">Sell your @Model.Manufacturer.Name @Model.Name here</a>
