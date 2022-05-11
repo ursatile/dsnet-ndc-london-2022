@@ -1,0 +1,20 @@
+﻿@model System.Collections.Generic.IEnumerable<Autobarn.Data.Entities.Model>
+
+@{
+    ViewBag.Title = "title";
+    Layout = "_Layout";
+}
+
+<h2>All Models</h2>
+@foreach (var group in Model.GroupBy(m => m.Manufacturer).OrderBy(m => m.Key.Name)) {
+    <h3>@group.Key.Name</h3>
+    <ul>
+        @foreach (var carModel in group) {
+            <li>
+                <a href="@Url.Action("Vehicles", "Models", new {id = carModel.Code})">
+                    @carModel.Manufacturer.Name @carModel.Name
+                </a>
+            </li>
+        }
+    </ul>
+}
