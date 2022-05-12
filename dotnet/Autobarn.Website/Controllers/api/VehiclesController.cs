@@ -27,7 +27,7 @@ namespace Autobarn.Website.Controllers.api {
             var total = db.CountVehicles();
             var result = new {
                 _links = Hal.Paginate("/api/vehicles", index, count, total),
-                items
+                items = items.Select(v => v.ToResource())
             };
             return Ok(result);
         }
@@ -37,7 +37,7 @@ namespace Autobarn.Website.Controllers.api {
         public IActionResult Get(string id) {
             var vehicle = db.FindVehicle(id);
             if (vehicle == default) return NotFound();
-            var result = vehicle.ToDynamic();
+            var result = vehicle.ToResource();
             return Ok(result);
         }
 
