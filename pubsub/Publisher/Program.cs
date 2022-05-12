@@ -2,7 +2,7 @@
 using Messages;
 const string AMQP = "amqps://kptbknvz:a5BBGuE0YJqtgjGHp7ChJei5JMs0xGRX@cougar.rmq.cloudamqp.com/kptbknvz";
 var bus = RabbitHutch.CreateBus(AMQP);
-var count = 0;
+var count = 1;
 while(true) {
     Console.WriteLine("Press any key to send a message!");
     Console.ReadKey(false);
