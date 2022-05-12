@@ -112,5 +112,11 @@ namespace Autobarn.Data {
 			model.Vehicles.Remove(vehicle);
 			vehicles.Remove(vehicle.Registration);
 		}
-	}
+
+        public IEnumerable<char> GetDistinctFirstLetters()
+        {
+            return vehicles.Values.Select(x => x.Registration.First()).Distinct();
+			
+        }
+    }
 }

@@ -41,5 +41,10 @@ namespace Autobarn.Data {
 			dbContext.Vehicles.Remove(vehicle);
 			dbContext.SaveChanges();
 		}
-	}
+
+        public IEnumerable<char> GetDistinctFirstLetters()
+        {
+            throw new System.NotImplementedException();
+        }
+    }
 }
