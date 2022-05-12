@@ -1,4 +1,8 @@
-﻿using System.Dynamic;
+﻿using System.Collections;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Dynamic;
+using System.Linq;
 
 namespace Autobarn.Website.Controllers {
     public class Hal {
@@ -12,4 +16,23 @@ namespace Autobarn.Website.Controllers {
             return links;
         }
     }
+
+    public static class HypermediaExtensions {
+        public static dynamic ToDynamic(this object obj) {
+            IDictionary<string, object> expando = new ExpandoObject();
+            var properties = TypeDescriptor.GetProperties(obj.GetType());
+            foreach (PropertyDescriptor property in properties) {
+                if (Ignore(property)) continue;
+                expando.Add(property.Name, property.GetValue(obj));
+            }
+            return expando;
+        }
+
+        private static bool Ignore(PropertyDescriptor property) {
+            var attributes = property.Attributes;
+            var ignoreAttributes = attributes.OfType<Newtonsoft.Json.JsonIgnoreAttribute>();
+            return ignoreAttributes.Any();
+        }
+    }
 }
+
