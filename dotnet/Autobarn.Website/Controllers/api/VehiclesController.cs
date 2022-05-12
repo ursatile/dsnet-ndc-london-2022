@@ -6,32 +6,11 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Reflection;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Autobarn.Website.Controllers.api {
-    [Route("api")]
-    [ApiController]
-    public class DefaultController : ControllerBase {
-        [HttpGet]
-        public IActionResult Get() {
-            var result = new {
-                message = "Welcome to the Autobarn API",
-                version = Assembly.GetExecutingAssembly().GetName().Version.ToString(),
-                _links = new {
-                    vehicles = new {
-                        href = "/api/vehicles"
-                    },
-                    models = new {
-                        href = "/api/models"
-                    }
-                }
-            };
-            return Ok(result);
-        }
-    }
     [Route("api/[controller]")]
     [ApiController]
     public class VehiclesController : ControllerBase {
@@ -64,7 +43,8 @@ namespace Autobarn.Website.Controllers.api {
                     href = $"/api/vehicles/{id}",
                     method = "PUT",
                     name = "Replace/overwrite this vehicle",
-                    type = "application/json"
+                    type = "application/json",
+                    schema = "https://developer.autobarn.com/docs/schema/vehicles.xml"
                 },
                 delete = new {
                     href = $"/api/vehicles/{id}",
