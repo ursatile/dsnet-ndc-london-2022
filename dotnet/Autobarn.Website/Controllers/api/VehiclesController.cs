@@ -22,11 +22,18 @@ namespace Autobarn.Website.Controllers.api {
 
         // GET: api/vehicles
         [HttpGet]
-        public IActionResult Get(int index = 0, int count = 10) {
-            var items = db.ListVehicles().Skip(index).Take(count);
-            var total = db.CountVehicles();
+        public IActionResult Get(char index) {
+            
+            var total = db.GetDistinctFirstLetters();
+            if (char.IsWhiteSpace(index) || !char.IsLetter(index) )
+            {
+                index = total.First();
+            }
+            index = char.ToUpper(index);
+            var items = db.ListVehicles().Where(x => x.Registration.StartsWith(index.ToString(), StringComparison.CurrentCultureIgnoreCase));
+            
             var result = new {
-                _links = Hal.Paginate("/api/vehicles", index, count, total),
+                _links = Hal.Paginate("/api/vehicles", index,  total.ToList()),
                 items
             };
             return Ok(result);

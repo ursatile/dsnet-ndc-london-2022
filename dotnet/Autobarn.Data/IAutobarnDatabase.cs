@@ -4,6 +4,7 @@ using System.Collections.Generic;
 namespace Autobarn.Data {
 	public interface IAutobarnDatabase {
 		public int CountVehicles();
+		public IEnumerable<char> GetDistinctFirstLetters();
 		public IEnumerable<Vehicle> ListVehicles();
 		public IEnumerable<Manufacturer> ListManufacturers();
 		public IEnumerable<Model> ListModels();
