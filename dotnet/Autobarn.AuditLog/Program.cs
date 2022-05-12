@@ -19,7 +19,7 @@ namespace Autobarn.AuditLog {
         }
 
         private static void HandleNewVehicleMessage(NewVehicleMessage m) {
-            Console.WriteLine($@"{m.Make} {m.Model} ({m.Color}, {m.Year})");
+            Console.WriteLine($@"{m.Registration}: {m.Make} {m.Model} ({m.Color}, {m.Year})");
         }
 
         private static IConfigurationRoot ReadConfiguration() {

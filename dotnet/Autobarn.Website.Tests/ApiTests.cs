@@ -29,23 +29,25 @@ namespace Autobarn.Website.Tests {
 			var client = factory.CreateClient();
 			var response = await client.GetAsync("/api/vehicles");
 			var json = await response.Content.ReadAsStringAsync();
-			var vehicles = JsonConvert.DeserializeObject<List<Vehicle>>(json);
-			vehicles.Count.ShouldBeGreaterThan(0);
+			var result = JsonConvert.DeserializeObject<dynamic>(json);
+            ((int)result.items.Count).ShouldBeGreaterThan(0);
 		}
 
 		[Fact]
 		public async void POST_creates_vehicle() {
+            const string MODEL_CODE = "volkswagen-beetle";
 			var registration = Guid.NewGuid().ToString("N");
 			var client = factory.CreateClient();
 			var vehicle = new {
-				modelCode = "volkswagen-beetle",
+				modelCode = MODEL_CODE,
 				registration,
 				color = "Green",
 				year = "1985"
 			};
 			var content = new StringContent(JsonConvert.SerializeObject(vehicle), Encoding.UTF8, "application/json");
-			var response = await client.PostAsync($"/api/vehicles", content);
-			response.StatusCode.ShouldBe(HttpStatusCode.OK);
+			var response = await client.PostAsync($"/api/models/{MODEL_CODE}", content);
+			response.StatusCode.ShouldBe(HttpStatusCode.Created);
+
 			var (_, result) = await client.GetVehicle(registration);
 			result.Color.ShouldBe("Green");
 			await client.DeleteAsync($"/api/vehicles/{registration}");
