@@ -44,6 +44,11 @@ namespace Autobarn.Website.Controllers.api {
         // POST api/vehicles
         [HttpPost]
         public IActionResult Post([FromBody] VehicleDto dto) {
+            var existing = db.FindVehicle(dto.Registration);
+            if (existing != default) {
+                return Conflict(
+                    $"Sorry, there is already a vehicle with registration {dto.Registration} in our database (and listing the same vehicle twice is against the rules!)");
+            }
             var vehicleModel = db.FindModel(dto.ModelCode);
             var vehicle = new Vehicle {
                 Registration = dto.Registration,
