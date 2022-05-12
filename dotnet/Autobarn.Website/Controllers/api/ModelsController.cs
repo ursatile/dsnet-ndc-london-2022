@@ -1,40 +1,42 @@
-﻿using Autobarn.Data;
+﻿using System;
+using Autobarn.Data;
 using Autobarn.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using Autobarn.Messages;
 using Autobarn.Website.Models;
+using EasyNetQ;
 
 namespace Autobarn.Website.Controllers.api {
-	[Route("api/[controller]")]
-	[ApiController]
-	public class ModelsController : ControllerBase {
-		private readonly IAutobarnDatabase db;
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ModelsController : ControllerBase {
+        private readonly IAutobarnDatabase db;
+        private readonly IBus bus;
 
-		public ModelsController(IAutobarnDatabase db) {
-			this.db = db;
-		}
+        public ModelsController(IAutobarnDatabase db, IBus bus)
+        {
+            this.db = db;
+            this.bus = bus;
+        }
 
-		[HttpGet]
-		public IEnumerable<Model> Get() {
-			return db.ListModels();
-		}
+        [HttpGet]
+        public IEnumerable<Model> Get() {
+            return db.ListModels();
+        }
 
-		[HttpGet("{id}")]
-		public IActionResult Get(string id) {
-			var vehicleModel = db.FindModel(id);
-			if (vehicleModel == default) return NotFound();
+        [HttpGet("{id}")]
+        public IActionResult Get(string id) {
+            var vehicleModel = db.FindModel(id);
+            if (vehicleModel == default) return NotFound();
             var result = vehicleModel.ToDynamic();
-            result._links = new
-            {
-                self = new
-                {
+            result._links = new {
+                self = new {
                     href = $"/api/models/{id}"
                 }
             };
-            result._actions = new
-            {
-                create = new
-                {
+            result._actions = new {
+                create = new {
                     method = "POST",
                     name = $"Create a new {vehicleModel.Manufacturer.Name} {vehicleModel.Name}",
                     href = $"/api/models/{id}",
@@ -42,7 +44,7 @@ namespace Autobarn.Website.Controllers.api {
                 }
             };
             return Ok(result);
-		}
+        }
 
         // POST api/models/{model-code}
         [HttpPost("{id}")]
@@ -60,9 +62,20 @@ namespace Autobarn.Website.Controllers.api {
                 VehicleModel = vehicleModel
             };
             db.CreateVehicle(vehicle);
+            PublishNewVehicleNotification(vehicle);
             return Created($"/api/vehicles/{vehicle.Registration}", vehicle.ToResource());
         }
 
-
-	}
+        private void PublishNewVehicleNotification(Vehicle vehicle) {
+            var message = new NewVehicleMessage {
+                Registration = vehicle.Registration,
+                Color = vehicle.Color,
+                Make = vehicle.VehicleModel.Manufacturer.Name,
+                Model = vehicle.VehicleModel.Name,
+                Year = vehicle.Year,
+                ListedAt = DateTimeOffset.UtcNow
+            };
+            bus.PubSub.Publish(message);
+        }
+    }
 }
