@@ -1,9 +1,12 @@
-﻿using Autobarn.Data;
+﻿using System;
+using Autobarn.Data;
 using Autobarn.Data.Entities;
 using Autobarn.Website.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
+using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -19,17 +22,12 @@ namespace Autobarn.Website.Controllers.api {
 
         // GET: api/vehicles
         [HttpGet]
-        public IActionResult Get(int index = 0) {
-            var items = db.ListVehicles().Skip(index).Take(10);
+        public IActionResult Get(int index = 0, int count = 10) {
+            var items = db.ListVehicles().Skip(index).Take(count);
+            var total = db.CountVehicles();
             var result = new {
-                _links = new
-                {
-                    self = new
-                    {
-                        href = "/api/vehicles"
-                    }
-                },
-                items   
+                _links = Hal.Paginate("/api/vehicles", index, count, total),
+                items
             };
             return Ok(result);
         }
