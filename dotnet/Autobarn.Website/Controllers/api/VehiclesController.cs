@@ -6,11 +6,32 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
+using System.Reflection;
 using Microsoft.AspNetCore.Razor.Language.CodeGeneration;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace Autobarn.Website.Controllers.api {
+    [Route("api")]
+    [ApiController]
+    public class DefaultController : ControllerBase {
+        [HttpGet]
+        public IActionResult Get() {
+            var result = new {
+                message = "Welcome to the Autobarn API",
+                version = Assembly.GetExecutingAssembly().GetName().Version.ToString(),
+                _links = new {
+                    vehicles = new {
+                        href = "/api/vehicles"
+                    },
+                    models = new {
+                        href = "/api/models"
+                    }
+                }
+            };
+            return Ok(result);
+        }
+    }
     [Route("api/[controller]")]
     [ApiController]
     public class VehiclesController : ControllerBase {
@@ -37,35 +58,31 @@ namespace Autobarn.Website.Controllers.api {
         public IActionResult Get(string id) {
             var vehicle = db.FindVehicle(id);
             if (vehicle == default) return NotFound();
-            var result = vehicle.ToResource();
-            return Ok(result);
-        }
-
-        // POST api/vehicles
-        [HttpPost]
-        public IActionResult Post([FromBody] VehicleDto dto) {
-            var existing = db.FindVehicle(dto.Registration);
-            if (existing != default) {
-                return Conflict(
-                    $"Sorry, there is already a vehicle with registration {dto.Registration} in our database (and listing the same vehicle twice is against the rules!)");
-            }
-            var vehicleModel = db.FindModel(dto.ModelCode);
-            var vehicle = new Vehicle {
-                Registration = dto.Registration,
-                Color = dto.Color,
-                Year = dto.Year,
-                VehicleModel = vehicleModel
+            dynamic result = vehicle.ToResource();
+            result._actions = new {
+                update = new {
+                    href = $"/api/vehicles/{id}",
+                    method = "PUT",
+                    name = "Replace/overwrite this vehicle",
+                    type = "application/json"
+                },
+                delete = new {
+                    href = $"/api/vehicles/{id}",
+                    method = "DELETE",
+                    name = "Delete this vehicle"
+                }
             };
-            db.CreateVehicle(vehicle);
-            return Ok(dto);
+            return Ok(result);
         }
 
         // PUT api/vehicles/ABC123
         [HttpPut("{id}")]
         public IActionResult Put(string id, [FromBody] VehicleDto dto) {
+            if (!dto.Registration.Equals(id, StringComparison.InvariantCultureIgnoreCase))
+                return Conflict("You can't replace that car with this car! (different registration codes)");
             var vehicleModel = db.FindModel(dto.ModelCode);
             var vehicle = new Vehicle {
-                Registration = dto.Registration,
+                Registration = id,
                 Color = dto.Color,
                 Year = dto.Year,
                 ModelCode = vehicleModel.Code

@@ -100,6 +100,7 @@ namespace Autobarn.Data {
 
 		public void CreateVehicle(Vehicle vehicle) {
 			vehicle.VehicleModel.Vehicles.Add(vehicle);
+            vehicle.ModelCode = vehicle.VehicleModel.Code;
 			UpdateVehicle(vehicle);
 		}
 

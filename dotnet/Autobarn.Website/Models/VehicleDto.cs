@@ -30,7 +30,7 @@ namespace Autobarn.Website.Models {
 
 		[Required]
 		[DisplayName("Year of first registration")]
-		[Range(1950, 2021)]
+		[Range(1950, 2022)]
 		public int Year { get; set; }
 
 		[Required]
