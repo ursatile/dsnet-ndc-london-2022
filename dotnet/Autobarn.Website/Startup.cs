@@ -5,7 +5,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
+using Autobarn.Website.GraphQL.Schemas;
 using EasyNetQ;
+using GraphiQl;
+using GraphQL.Server;
 
 namespace Autobarn.Website {
 	public class Startup {
@@ -36,6 +39,10 @@ namespace Autobarn.Website {
             var amqp = Configuration.GetConnectionString("AutobarnRabbitMqConnectionString");
             var bus = RabbitHutch.CreateBus(amqp);
             services.AddSingleton(bus);
+
+            services.AddScoped<AutobarnSchema>();
+            services.AddGraphQL().AddNewtonsoftJson();
+
         }
 
 		public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
@@ -51,6 +58,8 @@ namespace Autobarn.Website {
 			app.UseStaticFiles();
 			app.UseRouting();
 			app.UseAuthorization();
+            app.UseGraphQL<AutobarnSchema>();
+            app.UseGraphiQl("/graphiql");
 			app.UseEndpoints(endpoints => {
 				endpoints.MapControllerRoute(
 					name: "default",
