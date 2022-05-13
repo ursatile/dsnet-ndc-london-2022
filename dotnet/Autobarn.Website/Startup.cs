@@ -41,7 +41,7 @@ namespace Autobarn.Website {
             services.AddSingleton(bus);
 
             services.AddScoped<AutobarnSchema>();
-            services.AddGraphQL().AddNewtonsoftJson();
+            services.AddGraphQL(options => options.EnableMetrics = false).AddNewtonsoftJson();
 
         }
 

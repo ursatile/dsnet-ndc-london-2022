@@ -33,7 +33,22 @@ namespace Autobarn.Website.Tests {
             ((int)result.items.Count).ShouldBeGreaterThan(0);
 		}
 
-		[Fact]
+        [Fact]
+        public async void GET_Model_Includes_Hypermedia_Actions()
+        {
+            var client = factory.CreateClient();
+            var response = await client.GetAsync("/api/");
+            var json = await response.Content.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeObject<dynamic>(json);
+            var vehiclesHref = (string) result._links.vehicles.href;
+            var vehiclesResponse = await client.GetAsync(vehiclesHref);
+            json = await vehiclesResponse.Content.ReadAsStringAsync();
+            result = JsonConvert.DeserializeObject<dynamic>(json);
+            var link = (string) result._links.next.href;
+            link.ShouldNotBeEmpty();
+        }
+
+        [Fact]
 		public async void POST_creates_vehicle() {
             const string MODEL_CODE = "volkswagen-beetle";
 			var registration = Guid.NewGuid().ToString("N");
