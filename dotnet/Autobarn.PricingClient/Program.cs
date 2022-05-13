@@ -13,16 +13,14 @@ namespace Autobarn.PricingClient {
     {
         private static Pricer.PricerClient grpcClient;
         private static readonly IConfigurationRoot config = ReadConfiguration();
-
         static void Main(string[] args)
         {
             using var channel = GrpcChannel.ForAddress(config.GetConnectionString("AutobarnPricingServerUrl"));
             grpcClient = new Pricer.PricerClient(channel);
             var amqp = config.GetConnectionString("AutobarnRabbitMqConnectionString");
             using var bus = RabbitHutch.CreateBus(amqp);
-            bus.PubSub.Subscribe<NewVehicleMessage>("Autobarn.PricingClient",
-                BuildHandler(bus),
-                x => x.WithAutoDelete());
+            var handler = BuildHandler(bus);
+            bus.PubSub.Subscribe("Autobarn.PricingClient", handler, x => x.WithAutoDelete());
             Console.WriteLine("Listening for NewVehicleMessages - press Enter to quit");
             Console.ReadLine();
         }
