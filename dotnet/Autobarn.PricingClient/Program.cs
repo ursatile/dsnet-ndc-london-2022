@@ -9,31 +9,41 @@ using Grpc.Net.Client;
 using Microsoft.Extensions.Configuration;
 
 namespace Autobarn.PricingClient {
-    internal class Program {
+    internal class Program
+    {
         private static Pricer.PricerClient grpcClient;
         private static readonly IConfigurationRoot config = ReadConfiguration();
-        static void Main(string[] args) {
+
+        static void Main(string[] args)
+        {
             using var channel = GrpcChannel.ForAddress(config.GetConnectionString("AutobarnPricingServerUrl"));
             grpcClient = new Pricer.PricerClient(channel);
             var amqp = config.GetConnectionString("AutobarnRabbitMqConnectionString");
             using var bus = RabbitHutch.CreateBus(amqp);
             bus.PubSub.Subscribe<NewVehicleMessage>("Autobarn.PricingClient",
-                HandleNewVehicleMessage,
+                BuildHandler(bus),
                 x => x.WithAutoDelete());
             Console.WriteLine("Listening for NewVehicleMessages - press Enter to quit");
             Console.ReadLine();
         }
 
-        private static async void HandleNewVehicleMessage(NewVehicleMessage m) {
-            Console.WriteLine($"retrieving price for {m.Registration} ({m.Make} {m.Model}, {m.Color}, {m.Year}");
-            var request = new PriceRequest {
-                Make = m.Make,
-                Color = m.Color,
-                Year = m.Year,
-                Model = m.Model
+        private static Action<NewVehicleMessage> BuildHandler(IBus bus)
+        {
+            return async m =>
+            {
+                Console.WriteLine($"retrieving price for {m.Registration} ({m.Make} {m.Model}, {m.Color}, {m.Year}");
+                var request = new PriceRequest
+                {
+                    Make = m.Make,
+                    Color = m.Color,
+                    Year = m.Year,
+                    Model = m.Model
+                };
+                var priceReply = await grpcClient.GetPriceAsync(request);
+                Console.WriteLine($"Price: {priceReply.Price} {priceReply.CurrencyCode}");
+                var newVehiclePriceMessage = m.ToNewVehiclePriceMessage(priceReply.Price, priceReply.CurrencyCode);
+                await bus.PubSub.PublishAsync(newVehiclePriceMessage);
             };
-            var priceReply = await grpcClient.GetPriceAsync(request);
-            Console.WriteLine($"Price: {priceReply.Price} {priceReply.CurrencyCode}");
         }
 
         private static IConfigurationRoot ReadConfiguration() {
