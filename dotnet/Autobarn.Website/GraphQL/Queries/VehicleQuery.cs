@@ -32,6 +32,12 @@ namespace Autobarn.Website.GraphQL.Queries {
                 new QueryArguments(MakeNonNullStringArgument("color",
                     "What color cars do you want?")),
                 resolve: GetVehicleByColor);
+
+            Field<ListGraphType<VehicleGraphType>>(
+                "VehiclesByYear",
+                "Return all vehicles registered in a particular year",
+                new QueryArguments(MakeNonNullStringArgument("year", "The vehicles year of first registration")),
+                resolve: GetVehiclesByYear);
         }
 
         private IEnumerable<Vehicle> GetVehicleByColor(IResolveFieldContext<object> context) {
@@ -43,6 +49,47 @@ namespace Autobarn.Website.GraphQL.Queries {
             var reg = context.GetArgument<string>("registration");
             return db.FindVehicle(reg);
         }
+        private IEnumerable<Vehicle> GetVehiclesByYear(IResolveFieldContext<object> context) {
+            string[] yearQuery = context.GetArgument<string>("year").Split(" ");
+
+            // Filter will be first part of array, year second and sorting third.
+            string filter = yearQuery[0];
+            int year = int.Parse(yearQuery[1]);
+            char sort = char.Parse(yearQuery[2]);
+
+            IEnumerable<Vehicle> vehicles = db.ListVehicles();
+
+            IEnumerable<Vehicle> filteredVehicles = filter switch {
+                "<" => vehicles.Where(v => v.Year < year),
+
+                "<=" => vehicles.Where(v => v.Year <= year),
+
+                ">" => vehicles.Where(v => v.Year > year),
+
+                ">=" => vehicles.Where(v => v.Year >= year),
+
+                _ => vehicles.Where(v => v.Year == year)
+            };
+
+            return sort switch {
+                '+' => filteredVehicles.OrderBy(v => v.Year),
+
+                '-' => filteredVehicles.OrderByDescending(v => v.Year),
+
+                _ => filteredVehicles
+            };
+        }
+
+        //private IEnumerable<Vehicle> GetVehiclesByYear(IResolveFieldContext<object> context) {
+        //    var year = context.GetArgument<string>("year");
+
+        //    if (year.StartsWith(">"))
+        //        return db.ListVehicles().Where(v => v.Year > int.Parse(year.Substring(1, year.Length - 1)));
+        //    else if (year.StartsWith("<"))
+        //        return db.ListVehicles().Where(v => v.Year < int.Parse(year.Substring(1, year.Length - 1)));
+        //    else
+        //        return db.ListVehicles().Where(v => v.Year == int.Parse(year));
+        //}
 
         private QueryArgument MakeNonNullStringArgument(string name, string description) {
             return new QueryArgument<NonNullGraphType<StringGraphType>> {
